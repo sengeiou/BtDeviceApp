@@ -102,7 +102,7 @@ public class WebEcgMonitorFragment extends DeviceFragment implements OnEcgMonito
         pager.setAdapter(fragAdapter);
         layout.setupWithViewPager(pager);
 
-        device.setEcgMonitorListener(this);
+        device.setListener(this);
         ecgView.setListener(this);
     }
 
@@ -172,7 +172,7 @@ public class WebEcgMonitorFragment extends DeviceFragment implements OnEcgMonito
         super.onDestroy();
 
         if(device != null)
-            device.removeEcgMonitorListener();
+            device.removeListener();
         if(hrAbnormalWarnAudio != null)
             hrAbnormalWarnAudio.stop();
 

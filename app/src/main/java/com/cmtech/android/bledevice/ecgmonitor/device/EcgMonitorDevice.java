@@ -8,7 +8,6 @@ import com.cmtech.android.ble.callback.IBleDataCallback;
 import com.cmtech.android.ble.core.BleDevice;
 import com.cmtech.android.ble.core.BleGattElement;
 import com.cmtech.android.ble.core.DeviceRegisterInfo;
-import com.cmtech.android.ble.core.IDevice;
 import com.cmtech.android.ble.exception.BleException;
 import com.cmtech.android.ble.utils.ExecutorUtil;
 import com.cmtech.android.bledevice.ecgmonitor.enumeration.EcgLeadType;
@@ -19,6 +18,8 @@ import com.cmtech.android.bledevice.ecgmonitor.record.ecgcomment.EcgNormalCommen
 import com.cmtech.android.bledevice.ecgmonitor.util.EcgMonitorUtil;
 import com.cmtech.android.bledeviceapp.model.AccountManager;
 import com.vise.log.ViseLog;
+
+import org.litepal.LitePal;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
@@ -108,32 +109,43 @@ public class EcgMonitorDevice extends AbstractEcgDevice {
         leadType = DEFAULT_LEAD_TYPE;
         value1mV = DEFAULT_VALUE_1MV;
 
+        // 从数据库获取设备的配置信息
+        EcgMonitorConfiguration config = LitePal.where("macAddress = ?", getAddress()).findFirst(EcgMonitorConfiguration.class);
+        if(config == null) {
+            config = new EcgMonitorConfiguration();
+            config.setMacAddress(getAddress());
+            config.save();
+        }
+        this.config = config;
+
         dataProcessor = new EcgDataProcessor(this);
     }
 
-    public static IDevice create(DeviceRegisterInfo registerInfo) {
+    public static EcgMonitorDevice create(DeviceRegisterInfo registerInfo) {
         BleDevice bleDevice = new BleDevice(registerInfo);
-        return new EcgMonitorDevice(bleDevice);
+        EcgMonitorDevice device = new EcgMonitorDevice(bleDevice);
+        device.deviceProxy = bleDevice;
+        return device;
     }
 
     @Override
     public void switchState() {
-        super.switchState();
+        deviceProxy.switchState();
     }
 
     @Override
     public void callDisconnect(boolean stopAutoScan) {
-        super.callDisconnect(stopAutoScan);
+        deviceProxy.callDisconnect(stopAutoScan);
     }
 
     @Override
     public boolean isStopped() {
-        return super.isStopped();
+        return deviceProxy.isStopped();
     }
 
     @Override
     public void clear() {
-        super.clear();
+        deviceProxy.clear();
     }
 
     public boolean isRecord() {
@@ -250,7 +262,7 @@ public class EcgMonitorDevice extends AbstractEcgDevice {
     public void open(Context context) {
         ViseLog.e("EcgMonitorDevice.open()");
 
-        super.open(context);
+        deviceProxy.open(context);
     }
 
     // 关闭设备
@@ -291,7 +303,7 @@ public class EcgMonitorDevice extends AbstractEcgDevice {
             broadcaster = null;
         }
 
-        super.close();
+        deviceProxy.close();
     }
 
     private void saveEcgRecord() {
@@ -305,8 +317,7 @@ public class EcgMonitorDevice extends AbstractEcgDevice {
         }
     }
 
-    @Override
-    public void disconnect() {
+    protected void disconnect() {
         ViseLog.e("EcgMonitorDevice.disconnect()");
 
         if(containBatteryService) {
@@ -321,7 +332,7 @@ public class EcgMonitorDevice extends AbstractEcgDevice {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        super.disconnect();
+        deviceProxy.disconnect();
     }
 
     // 添加留言内容
@@ -548,7 +559,7 @@ public class EcgMonitorDevice extends AbstractEcgDevice {
         }
     }
 
-    private void updateRecordSecond(final int second) {
+    public void updateRecordSecond(final int second) {
         if(listener != null) {
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
