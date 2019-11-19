@@ -1,5 +1,6 @@
 package com.cmtech.android.bledevice.ecgmonitorweb;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -22,6 +23,7 @@ import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.cmtech.android.bledevice.ecgmonitor.process.signal.calibrator.IEcgCalibrator.STANDARD_VALUE_1MV_AFTER_CALIBRATION;
+import static com.cmtech.android.bledevice.view.ScanWaveView.DEFAULT_ZERO_LOCATION;
 
 
 /**
@@ -89,10 +91,6 @@ public class WebEcgMonitorDevice extends AbstractEcgDevice {
     // 构造器
     private WebEcgMonitorDevice(WebDevice deviceProxy) {
         super(deviceProxy);
-
-        sampleRate = DEFAULT_SAMPLE_RATE;
-        leadType = DEFAULT_LEAD_TYPE;
-        value1mV = DEFAULT_VALUE_1MV;
     }
 
     public static IDevice create(DeviceRegisterInfo registerInfo) {
@@ -101,9 +99,29 @@ public class WebEcgMonitorDevice extends AbstractEcgDevice {
     }
 
     @Override
+    public void switchState() {
+        super.switchState();
+    }
+
+    @Override
+    public boolean isStopped() {
+        return super.isStopped();
+    }
+
+    @Override
+    public void clear() {
+        super.clear();
+    }
+
+    @Override
     public void setValue1mV(int value1mV) {
         this.value1mV = value1mV;
     }
+
+    public int getRecordSecond() {
+        return (ecgRecord == null) ? 0 : ecgRecord.getRecordSecond();
+    }
+    public long getRecordDataNum() { return (ecgRecord == null) ? 0 : ecgRecord.getDataNum(); }
 
     @Override
     public boolean executeAfterConnectSuccess() {
@@ -117,7 +135,8 @@ public class WebEcgMonitorDevice extends AbstractEcgDevice {
                 if(!TextUtils.isEmpty(broadcastId)) {
                     WebEcgMonitorDevice.this.sampleRate = sampleRate;
                     updateSampleRate(sampleRate);
-                    updateSignalShowSetup(sampleRate, STANDARD_VALUE_1MV_AFTER_CALIBRATION);
+                    // 初始化信号显示设置
+                    initializeSignalShowSetup(sampleRate);
                     if(listener != null) {
                         listener.onEcgSignalShowStateUpdated(true);
                     }
@@ -156,18 +175,38 @@ public class WebEcgMonitorDevice extends AbstractEcgDevice {
         return true;
     }
 
+    // 初始化信号显示设置
+    private void initializeSignalShowSetup(int sampleRate) {
+        // 更新信号显示设置
+        updateSignalShowSetup(sampleRate, STANDARD_VALUE_1MV_AFTER_CALIBRATION);
+    }
+
+    private void updateSignalShowSetup(int sampleRate, int value1mV) {
+        if(listener != null)
+            listener.onShowSetupUpdated(sampleRate, value1mV, DEFAULT_ZERO_LOCATION);
+    }
+
     @Override
     public void executeAfterDisconnect() {
-        if(listener != null) {
-            listener.onEcgSignalShowStateUpdated(false);
-        }
+
     }
 
     @Override
     public void executeAfterConnectFailure() {
-        if(listener != null) {
-            listener.onEcgSignalShowStateUpdated(false);
-        }
+
+    }
+
+    @Override
+    public void open(Context context) {
+        ViseLog.e("EcgMonitorDevice.open()");
+
+        super.open(context);
+    }
+
+    // 关闭设备
+    @Override
+    public void close() {
+        super.close();
     }
 
     @Override
@@ -179,10 +218,36 @@ public class WebEcgMonitorDevice extends AbstractEcgDevice {
         super.callDisconnect(stopAutoScan);
     }
 
+    private void updateRecordSecond(final int second) {
+        if(listener != null) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onEcgSignalRecordSecondUpdated(second);
+                }
+            });
+        }
+    }
+
+    private void updateSampleRate(final int sampleRate) {
+        if(listener != null)
+            listener.onSampleRateUpdated(sampleRate);
+    }
+
+    private void updateLeadType(final EcgLeadType leadType) {
+        if(listener != null)
+            listener.onLeadTypeUpdated(leadType);
+    }
+
+    private void updateValue1mV(final int value1mV) {
+        if(listener != null)
+            listener.onValue1mVUpdated(value1mV, STANDARD_VALUE_1MV_AFTER_CALIBRATION);
+    }
+
     @Override
     public void updateSignalValue(final int ecgSignal) {
         // 记录
-        if(isRecord()) {
+        if(true) {
             try {
                 ecgRecord.writeData(ecgSignal);
                 updateRecordSecond(ecgRecord.getRecordSecond());
@@ -207,15 +272,6 @@ public class WebEcgMonitorDevice extends AbstractEcgDevice {
         // 显示
         if(listener != null) {
             listener.onHrUpdated(hr);
-        }
-    }
-
-    @Override
-    public synchronized void setRecord(boolean record) {
-        if(ecgRecord != null && this.isRecord != record) {
-            // 当前isRecord与要设置的isRecord不同，意味着要改变当前的isRecord状态
-            isRecord = record;
-            updateRecordStatus(isRecord);
         }
     }
 }

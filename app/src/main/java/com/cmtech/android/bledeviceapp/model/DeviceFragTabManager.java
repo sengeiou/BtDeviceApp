@@ -6,7 +6,6 @@ import android.support.v4.app.FragmentManager;
 
 import com.cmtech.android.ble.core.IDevice;
 import com.cmtech.android.bledeviceapp.activity.DeviceFragment;
-import com.vise.log.ViseLog;
 
 import java.util.List;
 
@@ -37,10 +36,7 @@ public class DeviceFragTabManager extends FragTabManager {
         if(device != null) {
             List<Fragment> fragments = getFragmentList();
             for (Fragment fragment : fragments) {
-                /*if (device.equals(((DeviceFragment) fragment).getDevice())) {
-                    return (DeviceFragment) fragment;
-                }*/
-                if(device.getAddress().equals(((DeviceFragment) fragment).getDevice().getAddress())) {
+                if (device.equals(((DeviceFragment) fragment).getDevice())) {
                     return (DeviceFragment) fragment;
                 }
             }
@@ -56,7 +52,6 @@ public class DeviceFragTabManager extends FragTabManager {
     // 设备的Fragment是否被选中
     public boolean isFragmentSelected(IDevice device) {
         Fragment fragment = findFragment(device);
-        ViseLog.e(fragment);
         return (fragment != null && fragment == getCurrentFragment());
     }
 }

@@ -56,7 +56,7 @@ public class WebDevice extends AbstractDevice {
                         @Override
                         public void run() {
                             setState(CONNECT);
-                            myCallback.executeAfterConnectSuccess();
+                            executeAfterConnectSuccess();
                         }
                     });
                 }
@@ -66,7 +66,7 @@ public class WebDevice extends AbstractDevice {
 
     @Override
     public void switchState() {
-        ViseLog.e("WebDevice.switchState()");
+        ViseLog.e("BleDevice.switchState()");
         if(isDisconnected()) {
             connect();
         } else if(isConnected()) {
