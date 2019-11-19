@@ -39,7 +39,7 @@ public class SigGeneratorDevice extends BleDevice {
     }
 
     @Override
-    public boolean executeAfterConnectSuccess() {
+    protected boolean executeAfterConnectSuccess() {
         BleGattElement[] elements = new BleGattElement[]{SIGGENERATOR_CTRL, SIGGENERATOR_TYPE, SIGGENERATOR_MAG, SIGGENERATOR_FREQ, SIGGENERATOR_BASELINE};
 
         if(!containGattElements(elements)) {
@@ -54,12 +54,12 @@ public class SigGeneratorDevice extends BleDevice {
     }
 
     @Override
-    public void executeAfterConnectFailure() {
+    protected void executeAfterConnectFailure() {
 
     }
 
     @Override
-    public void executeAfterDisconnect() {
+    protected void executeAfterDisconnect() {
 
     }
 

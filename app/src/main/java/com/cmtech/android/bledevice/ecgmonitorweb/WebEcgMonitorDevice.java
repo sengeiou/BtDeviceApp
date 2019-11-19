@@ -137,7 +137,7 @@ public class WebEcgMonitorDevice extends WebDevice implements IEcgDevice {
     public long getRecordDataNum() { return (ecgRecord == null) ? 0 : ecgRecord.getDataNum(); }
 
     @Override
-    public boolean executeAfterConnectSuccess() {
+    protected boolean executeAfterConnectSuccess() {
         EcgHttpBroadcastReceiver.retrieveBroadcastInfo("", new EcgHttpBroadcastReceiver.IEcgBroadcastInfoCallback() {
             @Override
             public void onReceived(String broadcastId, String deviceId, String creatorId, int sampleRate, int caliValue, int leadTypeCode) {
@@ -200,12 +200,12 @@ public class WebEcgMonitorDevice extends WebDevice implements IEcgDevice {
     }
 
     @Override
-    public void executeAfterDisconnect() {
+    protected void executeAfterDisconnect() {
 
     }
 
     @Override
-    public void executeAfterConnectFailure() {
+    protected void executeAfterConnectFailure() {
 
     }
 

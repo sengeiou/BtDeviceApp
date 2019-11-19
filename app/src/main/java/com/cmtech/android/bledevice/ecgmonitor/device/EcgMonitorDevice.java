@@ -188,7 +188,7 @@ public class EcgMonitorDevice extends BleDevice implements IEcgDevice, HrStatist
     }
 
     @Override
-    public boolean executeAfterConnectSuccess() {
+    protected boolean executeAfterConnectSuccess() {
         BleGattElement[] elements = new BleGattElement[]{ECGMONITOR_DATA, ECGMONITOR_DATA_CCC, ECGMONITOR_CTRL, ECGMONITOR_SAMPLE_RATE, ECGMONITOR_LEAD_TYPE};
 
         if(!containGattElements(elements)) {
@@ -219,7 +219,7 @@ public class EcgMonitorDevice extends BleDevice implements IEcgDevice, HrStatist
     }
 
     @Override
-    public void executeAfterDisconnect() {
+    protected void executeAfterDisconnect() {
         dataProcessor.stop();
 
         if(listener != null) {
@@ -232,7 +232,7 @@ public class EcgMonitorDevice extends BleDevice implements IEcgDevice, HrStatist
     }
 
     @Override
-    public void executeAfterConnectFailure() {
+    protected void executeAfterConnectFailure() {
         dataProcessor.stop();
 
         if(listener != null) {

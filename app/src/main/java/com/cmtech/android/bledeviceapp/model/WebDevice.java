@@ -96,10 +96,20 @@ public abstract class WebDevice extends AbstractDevice {
         ViseLog.e("WebDevice.close()");
 
         setState(BleDeviceState.CLOSED);
+
     }
 
     @Override
     public void clear() {
 
     }
+
+    @Override
+    protected abstract boolean executeAfterConnectSuccess();
+
+    @Override
+    protected abstract void executeAfterConnectFailure();
+
+    @Override
+    protected abstract void executeAfterDisconnect();
 }

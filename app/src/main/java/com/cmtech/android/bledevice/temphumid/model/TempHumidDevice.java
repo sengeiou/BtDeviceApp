@@ -143,7 +143,7 @@ public class TempHumidDevice extends BleDevice {
     }
 
     @Override
-    public boolean executeAfterConnectSuccess() {
+    protected boolean executeAfterConnectSuccess() {
         // 检查是否有正常的温湿度服务和特征值
         BleGattElement[] elements = new BleGattElement[]{TEMPHUMIDDATA, TEMPHUMIDCTRL, TEMPHUMIDPERIOD, TEMPHUMIDDATACCC};
 
@@ -172,12 +172,12 @@ public class TempHumidDevice extends BleDevice {
     }
 
     @Override
-    public void executeAfterDisconnect() {
+    protected void executeAfterDisconnect() {
 
     }
 
     @Override
-    public void executeAfterConnectFailure() {
+    protected void executeAfterConnectFailure() {
 
     }
 
